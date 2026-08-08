@@ -1134,86 +1134,315 @@ Then implement only the necessary changes for the Interview History feature.
 
 The final Interview History page should allow users to review their previous interview sessions, scores, feedback, questions, answers, strengths, improvement areas, and recommendations.
 
-The implementation must remain dynamic and must use the actual interview data available in the application rather than hard-coded information.
+The implementation must remain dynamic and must use the actual interview data available in the appl
 
-### Prompt 7 - Performance Analysis Page
-> Design a polished, enterprise-grade **Performance Analysis** page for the interview platform.
+#### Prompt 6 – Performance Analysis Page
 
-## Purpose
+Build a professional and easy-to-understand **Performance Analysis page** for an interview platform.
 
-Provide a clear, actionable summary of a completed interview session that helps candidates and mentors understand strengths, weaknesses, and recommended next steps.
+The page should help candidates and reviewers quickly understand how well the candidate performed, what they did well, what they need to improve, and what they should focus on next.
 
-## Key requirements
+---
 
-* Display an overall performance score and grade band.
-* Show topic coverage across the candidate's curriculum and identify missing or weak areas.
-* Present time metrics, such as average time per question and total interview duration.
-* Surface AI-generated feedback with bullet-point strengths and improvement suggestions.
-* Give a compact question-level summary including score, topic, and model feedback.
-* Support a clean, professional enterprise UI with dark slate cards, subtle borders, and a premium accent palette.
+### 1. Main Goal
 
-## Page structure
+The page should:
 
-1. Header
-   * Interview title, candidate name, completion date, and duration.
-   * Primary action buttons like `Export Report` and `View Timeline`.
-2. Summary cards row
-   * Overall Score
-   * Topics Covered
-   * Questions Answered
-   * Follow-up Rate or Depth Score
-3. Topic performance section
-   * Bar chart or score cards showing topic-by-topic performance.
-   * Highlight weakest curriculum days and strongest areas.
-4. Conversation summary
-   * Compact list of key questions, answer quality, and AI comments.
-   * Separate AI feedback from candidate response details.
-5. Recommendations panel
-   * 2–3 actionable next steps.
-   * Suggested study areas and follow-up focus.
+* Show the candidate's overall interview performance.
+* Show strengths and weaknesses.
+* Display important scores and statistics.
+* Show performance for each topic.
+* Show how much time the candidate spent on each question.
+* Give useful AI-generated feedback.
+* Provide 2–3 clear recommendations for improvement.
 
-## Design guidance
+The page should be **read-only**. It should not change interview or dashboard data.
 
-* Keep the layout consistent with the existing Dashboard and Interview pages.
-* Use dark/slate backgrounds, subtle purple/indigo accents, and high-contrast text.
-* Avoid overly decorative or gamified elements.
-* Make the page feel like a professional AI evaluation dashboard.
+---
 
-## Data contract
+### 2. Who Will Use It?
 
-Use a modular service layer for data access, for example:
+The page is mainly for:
+
+* **Candidates** – to understand their performance and improve.
+* **Mentors/Reviewers** – to quickly review the candidate's performance.
+
+---
+
+### 3. Data Needed
+
+The page can get data from:
+
+* **Interview results**
+
+  * Questions asked
+  * Candidate answers
+  * Scores
+  * Time taken
+  * AI feedback
+
+* **Candidate profile**
+
+  * Completed learning modules
+  * Previous interview attempts
+  * Learning progress
+
+* **Curriculum**
+
+  * Topics
+  * Curriculum days
+  * Learning objectives
+
+Use **mock data for now** if the backend is not ready.
+
+---
+
+### 4. Important Metrics
+
+Show these main metrics:
+
+#### Overall Score
+
+Show a score from **0–100**.
+
+For example:
+
+* 90–100 → Excellent
+* 70–89 → Good
+* Below 70 → Needs Improvement
+
+#### Topics Covered
+
+Show:
+
+* Number of topics/curriculum days covered.
+* Percentage of the curriculum covered.
+
+#### Answer Accuracy
+
+Show the percentage of answers that were correct or met the expected criteria.
+
+#### Answer Depth
+
+Give each answer a depth score from **0–5**.
+
+Show the average depth score.
+
+#### Time Per Question
+
+Show:
+
+* Average/median time spent per question.
+* Which questions took unusually long or short.
+
+#### Follow-up Rate
+
+Show how many answers required a follow-up question.
+
+#### Consistency
+
+Show whether the candidate performed consistently across different topics.
+
+---
+
+### 5. Page Layout
+
+Use the following sections.
+
+#### Header
+
+Show:
+
+* Interview title
+* Candidate name
+* Interview date
+* Total interview duration
+
+Add buttons:
+
+* **View Raw Transcript**
+* **Export PDF**
+
+---
+
+#### Summary Cards
+
+At the top, show cards for:
+
+* Overall Score
+* Time Per Question
+* Topics Covered
+* Questions Asked
+
+---
+
+#### Score Progress
+
+If multiple interviews are available, show a **line chart** showing how the candidate's score has changed over time.
+
+If there is only one interview, show the candidate's score progression question-by-question instead.
+
+---
+
+#### Competency Chart
+
+Show performance across important technical skills.
+
+For example:
+
+* RAG
+* Vector Databases
+* Prompt Engineering
+* MCP
+* LLMs
+* Python
+
+A radar chart or another easy-to-understand chart can be used.
+
+---
+
+#### Topic Performance
+
+Show a bar chart displaying the score for each topic or curriculum day.
+
+Example:
 
 ```text
-services/analysisService.js
-mock/analysisData.js
+RAG                  88
+Vector Databases     76
+Prompt Engineering   92
+MCP                  68
 ```
 
-Mock API shape:
+Use different performance levels to make strong and weak areas easy to identify.
 
-```json
-{
-  "interviewId": "string",
-  "candidateId": "string",
-  "date": "ISO8601",
-  "durationSeconds": 1800,
-  "overallScore": 82,
-  "topicsCovered": [
-    {"topicId":"t1","name":"RAG","score":88,"questionsCount":3}
-  ],
-  "questions": [
-    {"questionId":"q1","text":"Explain RAG","topicId":"t1","score":85,"timeSeconds":240,"modelFeedback":"Good explanation; add enterprise constraints."}
-  ],
-  "aiSummary": {
-    "strengths": ["Concise explanations"],
-    "improvements": ["Deeper system design examples"],
-    "comments": "Overall strong; recommend reviewing vector DB tradeoffs."
-  }
-}
-```
+---
 
-## Implementation notes
+#### Question List
 
-* Keep analysis logic separate from UI components.
-* Reuse existing styles and CSS variables whenever possible.
-* Do not implement backend integration until the API contract is confirmed.
-* Keep the page modular so the History page or candidate profile can reuse the same data.
+Create a table containing:
+
+| Question    | Topic | Score |    Time | AI Feedback         |
+| ----------- | ----- | ----: | ------: | ------------------- |
+| Explain RAG | RAG   |    85 | 240 sec | Good explanation... |
+
+The table should support pagination if there are many questions.
+
+---
+
+#### AI Feedback
+
+Create a separate section showing:
+
+**Strengths**
+
+* What the candidate did well.
+
+**Areas to Improve**
+
+* What the candidate should improve.
+
+**Recommendations**
+
+Give 2–3 specific suggestions for improvement.
+
+Example:
+
+> Review vector database scalability and production trade-offs.
+
+---
+
+### 6. User Interactions
+
+Allow users to:
+
+* Hover over charts to see exact values.
+* Filter results by date.
+* Filter by curriculum day.
+* Filter by topic.
+* Filter by difficulty.
+* Click a topic to see related questions.
+* View AI feedback for individual questions.
+* Compare the current interview with previous interviews.
+* Export results as CSV or PDF.
+
+If useful, also provide a switch between:
+
+* **Actual Score**
+* **Percentile Ranking**
+
+Percentile ranking can be based on mock cohort data.
+
+---
+
+### 7. Design & Accessibility
+
+The page should look modern, clean, and professional.
+
+Make sure:
+
+* Text is easy to read.
+* There is enough contrast between text and background.
+* The page works with keyboard navigation.
+* Tables and buttons are keyboard accessible.
+* Charts have labels that screen readers can understand.
+* Export buttons have clear labels.
+* The page works well on different screen sizes.
+
+---
+
+
+### 8. Implementation
+
+For now:
+
+* Keep the analysis logic in `services/analysisService.js`.
+* Keep sample data inside the `mock/` folder.
+* Use the project's existing chart components if available.
+* If there is no chart library, use a lightweight chart library already approved for the project.
+* Keep components separate and reusable.
+* Make the components accept data through props so they can also be reused on the History page.
+
+---
+
+### 9. Export
+
+The page should support:
+
+* **PDF export** through a backend/server endpoint when available.
+* **CSV or JSON export** as a fallback on the frontend.
+
+---
+
+### 10. Important Team Rules
+
+Do **not** change:
+
+* Interview functionality.
+* Dashboard functionality.
+* Existing interview data.
+
+The Performance Analysis page should only **read and display** interview information.
+
+Keep the code modular so individual components can easily be reused elsewhere.
+
+---
+
+### 11. Expected Result
+
+Create a polished Performance Analysis page where a candidate can immediately understand:
+
+**How did I perform?**
+
+**Which topics am I good at?**
+
+**Where did I struggle?**
+
+**How much time did I spend?**
+
+**What should I improve next?**
+
+The final page should be professional, visually clear, responsive, and easy for both candidates and reviewers to use.
+ication rather than hard-coded information.
+
+
