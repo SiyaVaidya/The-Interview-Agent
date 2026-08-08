@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { jsPDF } from 'jspdf';
 import { getInterviewAnalysis, transformInterviewAnalysis } from '../services/analysisService';
 import { getCandidates, getCandidateAnalysis, getCurriculum } from '../services/dataService';
 
@@ -161,6 +162,169 @@ export default function Analysis({ onNavigate }) {
       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Overall</div>
     </div>
   );
+
+  const formatPdfValue = (value, fallback = '—') => {
+    if (value === null || value === undefined || value === '') return fallback;
+    if (Array.isArray(value)) return value.filter(Boolean).join(', ') || fallback;
+    return String(value);
+  };
+
+  const buildInterviewSummaryPdf = () => {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const margin = 36;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const contentWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const addHeading = (title, level = 1) => {
+      if (y > pageHeight - 70) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(level === 1 ? 18 : 13);
+      doc.setTextColor(level === 1 ? '#111827' : '#2563eb');
+      doc.text(title, margin, y);
+      y += level === 1 ? 24 : 18;
+      return y;
+    };
+
+    const addParagraph = (text, options = {}) => {
+      const { fontSize = 11, fontStyle = 'normal', indent = 0, color = '#374151' } = options;
+      const textToRender = String(text || '—');
+      const lines = doc.splitTextToSize(textToRender, contentWidth - indent);
+      doc.setFont('helvetica', fontStyle);
+      doc.setFontSize(fontSize);
+      doc.setTextColor(color);
+      lines.forEach((line) => {
+        if (y > pageHeight - 40) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin + indent, y);
+        y += fontSize * 1.3;
+      });
+      return y;
+    };
+
+    const addBulletList = (items) => {
+      const entries = Array.isArray(items) ? items : [items];
+      entries.filter(Boolean).forEach((item) => {
+        if (y > pageHeight - 40) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor('#374151');
+        const text = String(item || '—');
+        const lines = doc.splitTextToSize(`• ${text}`, contentWidth - 12);
+        lines.forEach((line) => {
+          if (y > pageHeight - 40) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(line, margin + 8, y);
+          y += 12;
+        });
+      });
+      return y;
+    };
+
+    const selectedInterview = activeInterview || aggregates.interviewsForCandidate[0] || null;
+    const feedback = selectedInterview?.feedback || {};
+    const candidateName = candidate?.member?.name || 'Candidate';
+    const candidateRole = candidate?.member?.jobRole || 'Role unavailable';
+    const interviewDate = selectedInterview?.completedAt ? new Date(selectedInterview.completedAt).toLocaleString() : 'Not available';
+    const strengths = (feedback.strengths || aggregates.strengths || []).filter(Boolean);
+    const weaknesses = (feedback.gaps || aggregates.gaps || []).filter(Boolean);
+    const nextSteps = (feedback.next || aggregates.nextSteps || []).filter(Boolean);
+    const summaryText = feedback.summary || selectedInterview?.summary || 'No interview feedback summary is currently available.';
+
+    const questionEntries = [];
+    const conversation = Array.isArray(selectedInterview?.conversation) ? selectedInterview.conversation : [];
+    let currentQuestion = null;
+
+    conversation.forEach((item) => {
+      if (item?.role === 'assistant' && (item?.text || '').trim()) {
+        currentQuestion = { question: item.text.trim(), answer: '', score: null };
+        questionEntries.push(currentQuestion);
+      } else if (currentQuestion && item?.role === 'user' && (item?.text || '').trim()) {
+        currentQuestion.answer = item.text.trim();
+        const wordCount = currentQuestion.answer.trim().split(/\s+/).filter(Boolean).length;
+        if (wordCount >= 80) currentQuestion.score = 9;
+        else if (wordCount >= 40) currentQuestion.score = 7.5;
+        else if (wordCount >= 15) currentQuestion.score = 6;
+        else currentQuestion.score = 4.5;
+        currentQuestion = null;
+      }
+    });
+
+    if (questionEntries.length === 0 && Array.isArray(selectedInterview?.questions) && selectedInterview.questions.length) {
+      selectedInterview.questions.forEach((entry) => {
+        questionEntries.push({
+          question: entry.question || 'Question',
+          answer: entry.answer || '',
+          score: entry.score ?? null,
+        });
+      });
+    }
+
+    y = addHeading('Interview Summary Report');
+    y = addParagraph(`Candidate: ${candidateName}`);
+    y = addParagraph(`Role: ${candidateRole}`);
+    y = addParagraph(`Interview Date: ${interviewDate}`);
+    y = addParagraph(`Overall Score: ${formatPdfValue(feedback.overallScore ?? aggregates.overallScore ?? '—')}`);
+    y = addParagraph(`Questions Covered: ${formatPdfValue(selectedInterview?.questionCount ?? aggregates.totalQuestions ?? '—')}`);
+    y = addParagraph(`Days Covered: ${formatPdfValue((selectedInterview?.daysCovered || []).join(', ') || '—')}`);
+    y += 8;
+
+    y = addHeading('Assessment Summary', 2);
+    y = addParagraph(summaryText);
+    y += 6;
+
+    y = addHeading('Strengths', 2);
+    y = addBulletList(strengths.length ? strengths : ['No strengths recorded.']);
+    y += 6;
+
+    y = addHeading('Weaknesses', 2);
+    y = addBulletList(weaknesses.length ? weaknesses : ['No weaknesses recorded.']);
+    y += 6;
+
+    y = addHeading('Recommended Next Steps', 2);
+    y = addBulletList(nextSteps.length ? nextSteps : ['No next steps recorded.']);
+    y += 6;
+
+    y = addHeading('Question-by-Question Results', 2);
+    if (questionEntries.length) {
+      questionEntries.forEach((entry, index) => {
+        y = addParagraph(`${index + 1}. ${entry.question || 'Question'}`, { fontStyle: 'bold' });
+        y = addParagraph(`Score: ${entry.score ?? '—'}`, { indent: 12, fontSize: 10 });
+        y = addParagraph(`Answer: ${entry.answer || 'No answer recorded.'}`, { indent: 12, fontSize: 10 });
+        y += 4;
+      });
+    } else {
+      y = addParagraph('No question-by-question results were available for this interview.');
+    }
+    y += 6;
+
+    y = addHeading('Additional Summary', 2);
+    y = addParagraph(`Interview Count for Candidate: ${formatPdfValue(aggregates.totalInterviews ?? '—')}`);
+    y = addParagraph(`Aggregate Questions: ${formatPdfValue(aggregates.totalQuestions ?? '—')}`);
+    y = addParagraph(`Curriculum Progress: ${formatPdfValue(aggregates.curriculumProgress.length ? aggregates.curriculumProgress.map((module) => `${module.module}: ${module.percent}%`).join(', ') : 'None')}`);
+    y = addParagraph(`Skills Snapshot: ${formatPdfValue(aggregates.skills.map((skill) => `${skill.skillName}: ${skill.score}/10`).join(', ') || 'None')}`);
+
+    doc.save(`${candidateName || 'candidate'}-interview-summary.pdf`);
+  };
+
+  const handleDownloadPdf = () => {
+    try {
+      buildInterviewSummaryPdf();
+    } catch (error) {
+      console.error('Failed to generate PDF', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -341,9 +505,7 @@ export default function Analysis({ onNavigate }) {
                     <td style={{ padding: '0.6rem' }}>{iv.feedback?.overallScore ?? '—'}</td>
                     <td style={{ padding: '0.6rem' }}>{iv.questionCount ?? '—'}</td>
                     <td style={{ padding: '0.6rem' }}>{(iv.daysCovered||[]).join(', ') || '—'}</td>
-                    <td style={{ padding: '0.6rem' }}>
-                      <button className="btn btn-outline" onClick={() => setActiveInterview(iv)}>View</button>
-                    </td>
+                    <td style={{ padding: '0.6rem' }} />
                   </tr>
                 ))}
               </tbody>
@@ -381,7 +543,7 @@ export default function Analysis({ onNavigate }) {
 
             <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
               <button className="btn btn-primary" onClick={() => { if (activeInterview) { setActiveInterview(activeInterview); window.scrollTo({top:0, behavior:'smooth'}); } else { onNavigate('/interview'); } }}>{activeInterview ? 'View Active Interview' : 'Start Interview'}</button>
-              <button className="btn btn-secondary" onClick={() => { navigator.clipboard?.writeText(JSON.stringify(aggregates, null, 2)); }}>Export</button>
+              <button className="btn btn-secondary" onClick={handleDownloadPdf}>Download as PDF</button>
             </div>
           </div>
 
