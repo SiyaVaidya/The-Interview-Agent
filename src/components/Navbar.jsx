@@ -5,6 +5,7 @@ export default function Navbar({ currentRoute, onNavigate }) {
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Interview', path: '/interview' },
     { name: 'History', path: '/history' },
+    { name: 'Analysis', path: '/analysis' },
   ];
 
   const handleLinkClick = (e, path) => {

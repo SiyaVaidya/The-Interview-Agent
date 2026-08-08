@@ -34,6 +34,51 @@ export default function Interview({ onNavigate, candidateId = 'CAND-001' }) {
   // Completion structured feedback state
   const [feedback, setFeedback] = useState(null);
 
+  // Persist completed interview analysis summary so Analysis page can load it
+  // Now append to a persistent interviews array (interviews) so the Analysis tab can show history
+  useEffect(() => {
+    if (phase === PHASE.COMPLETE && feedback) {
+      try {
+        const userAnswers = sessionId ? conversation.filter(m => m.role === 'user') : [];
+        const assistantMessages = conversation.filter(m => m.role === 'assistant');
+        const uniqueDays = Array.from(new Set(assistantMessages.map(m => m.day).filter(Boolean)));
+        const lastInterview = {
+          sessionId,
+          candidateId: candidate.member?.id,
+          completedAt: Date.now(),
+          elapsedSeconds: elapsed,
+          questionCount: userAnswers.length,
+          daysCovered: uniqueDays,
+          feedback,
+          conversation
+        };
+
+        // Read existing interviews array, append, dedupe by sessionId, and write back
+        const raw = localStorage.getItem('interviews');
+        let arr = [];
+        if (raw) {
+          try { arr = JSON.parse(raw) || []; } catch (e) { arr = []; }
+        }
+        // remove any previous entry with same sessionId
+        arr = arr.filter(it => it.sessionId !== lastInterview.sessionId);
+        arr.unshift(lastInterview); // put newest first
+        localStorage.setItem('interviews', JSON.stringify(arr));
+
+        // Keep lastInterview key for backward compatibility
+        localStorage.setItem('lastInterview', JSON.stringify(lastInterview));
+
+        // Dispatch a global event so other UI (Analysis tab) can update live without reload
+        try {
+          window.dispatchEvent(new CustomEvent('interview:completed', { detail: lastInterview }));
+        } catch (e) {
+          // ignore in older browsers
+        }
+      } catch (e) {
+        console.warn('Failed to persist interview to history:', e);
+      }
+    }
+  }, [phase, feedback, sessionId, conversation, elapsed, candidate]);
+
   // Refs & Guards
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
