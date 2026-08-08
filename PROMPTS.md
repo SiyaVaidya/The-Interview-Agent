@@ -1023,26 +1023,25 @@ Use a professional interview layout:
 │                              Submit Answer   │
 │                                             │
 └─────────────────────────────────────────────┘
-## Interview History Feature
+## Prompt - Interview History Feature
 
-I am working on the AI-based technical interview application "The Interview Agent" built with React.
+Build the **Interview History** feature for our existing React project, **"The Interview Agent"**.
 
-Create a complete and dynamic Interview History page using the existing project structure and interview data.
+### Objective
+
+Create a dynamic Interview History page where users can view and review their previously completed interviews.
 
 ### Requirements
 
-1. Display all completed interviews from the existing interview data/storage.
+1. Inspect the existing project before making changes.
 
-2. Do not hard-code any user-specific information such as:
-   - Candidate name
-   - Interview score
-   - Date
-   - Duration
-   - Questions
-   - Answers
-   - Feedback
+2. Reuse the existing interview data, storage logic, services, components, routing, and styling wherever possible.
 
-3. For each completed interview, display:
+3. Do not hard-code any interview or user-specific information.
+
+4. The Interview History page should display all completed interviews available for the current user/application context.
+
+5. For every completed interview, display:
    - Interview date and time
    - Overall score
    - Number of questions
@@ -1050,29 +1049,30 @@ Create a complete and dynamic Interview History page using the existing project 
    - Topics or curriculum days covered
    - Interview/session ID
 
-4. When an interview is selected, display its complete details:
-   - AI evaluation/summary
+6. When a user selects an interview, display detailed information including:
+   - Overall AI evaluation
+   - AI-generated summary
    - Strengths
    - Areas for improvement
    - Recommended next steps
    - Questions asked by the AI interviewer
    - Candidate answers
 
-5. Display the interview conversation clearly by distinguishing:
+7. Display the interview conversation in chronological order and clearly distinguish:
    - AI Interviewer
    - Candidate
 
-6. Add a Delete option for individual interview records.
+8. Add a **Delete** option for an individual interview.
 
-7. Add a Clear History option to remove all interview records, with confirmation before deletion.
+9. Add a **Clear History** option for removing all interview history, with confirmation before deletion.
 
-8. If there are no completed interviews, display a suitable empty-state message with an option to start a new interview.
+10. If no interviews are available, display a professional empty-state message and provide a button to start a new interview.
 
-9. Provide navigation to:
+11. Provide navigation to:
    - Dashboard: `/dashboard`
    - Interview: `/interview`
 
-10. Keep the existing application's UI design and styling. Reuse existing:
+12. Keep the existing application's design consistent. Reuse the existing:
    - Colors
    - Typography
    - Buttons
@@ -1081,15 +1081,17 @@ Create a complete and dynamic Interview History page using the existing project 
    - Navigation
    - Components
 
-11. Make the Interview History page responsive for desktop, tablet, and smaller screens.
+13. Make the page responsive for desktop, tablet, and mobile screens.
 
-12. Newly completed interviews should automatically appear in the Interview History using the existing application data flow.
+14. Newly completed interviews should appear in Interview History using the existing application data flow.
 
-13. Do not create fake or hard-coded interview records.
+15. Do not create fake interview records.
 
-14. Do not create a separate interview-storage system if the existing project already provides one.
+16. Do not hard-code candidate names, scores, dates, questions, answers, or feedback.
 
-15. Do not modify unrelated features or break:
+17. Do not create a duplicate interview-storage system if the existing project already provides one.
+
+18. Do not modify unrelated features or break:
    - Dashboard
    - Interview Page
    - Interview completion
@@ -1097,30 +1099,38 @@ Create a complete and dynamic Interview History page using the existing project 
    - Existing routing
    - Existing services
 
-### Before Coding
+### Implementation Flow
 
-First inspect the existing project structure and identify:
+The expected flow is:
 
-- Existing History page
-- Interview page
-- Interview storage logic
-- Interview completion logic
-- Feedback/analysis data
-- Existing routing
-- Existing styling
-
-Then implement only the necessary changes for Interview History.
-
-### Expected Flow
-
-Candidate completes an interview:
-
-Interview
+Candidate
+→ Start Interview
+→ AI Interview
+→ Questions and Answers
 → Interview Completion
-→ Interview Result/Feedback
+→ Interview Feedback
 → Interview Data Saved
 → Interview History
 → Select Previous Interview
 → View Interview Details
 
-The Interview History must remain dynamic and should display the actual completed interviews available in the application rather than hard-coded data.
+### Before Coding
+
+First inspect:
+
+- Existing project structure
+- Existing `History.jsx`
+- Existing `Interview.jsx`
+- Interview completion logic
+- Interview data/storage logic
+- Feedback/analysis services
+- Existing routing
+- Existing CSS/theme
+
+Then implement only the necessary changes for the Interview History feature.
+
+### Expected Result
+
+The final Interview History page should allow users to review their previous interview sessions, scores, feedback, questions, answers, strengths, improvement areas, and recommendations.
+
+The implementation must remain dynamic and must use the actual interview data available in the application rather than hard-coded information.
