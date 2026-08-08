@@ -1024,86 +1024,114 @@ Use a professional interview layout:
 │                                             │
 └─────────────────────────────────────────────┘
 
-### Prompt 6 - Performance Analysis Page Structure
-> Build a professional, data-driven Performance Analysis page that summarizes an interview session, highlights strengths and weaknesses, and provides actionable recommendations for the candidate.
+## Prompt - Interview History Feature
 
-Purpose
-- Provide a clear, concise summary of an interview session for candidates and reviewers.
-- Surface quantitative and qualitative signals: score, competency breakdown, time metrics, and AI feedback.
+Build the **Interview History** feature for our existing React project, **"The Interview Agent"**.
 
-Audience
-- Candidates seeking detailed feedback.
-- Mentors / reviewers who need quick insights.
+### Objective
 
-Data sources
-- Interview result object (per-interview): questions, answers, timestamps, scores, model feedback.
-- Candidate profile: learning journey, completed modules, prior attempts.
-- Curriculum metadata: topic → day mapping, learning objectives.
+Create a dynamic Interview History page where users can view and review their previously completed interviews.
 
-Required metrics & KPIs
-- Overall Score: single numeric (0–100) with interpretation band (Excellent / Good / Needs Improvement).
-- Topic Coverage: number of curriculum days covered and percent coverage.
-- Accuracy / Correctness Rate: percent of answers marked correct or meeting rubric thresholds.
-- Depth Score: measure of answer depth/complexity (e.g., 0–5) averaged across questions.
-- Time Per Question: median and distribution, highlighting long/short answers.
-- Follow-up Rate: percent of answers that triggered deeper follow-ups.
-- Consistency: variance of scores across topics (spot oscillations).
+### Requirements
 
-Visual layout (recommended blocks)
-- Header: interview title, candidate name, date, duration, `View Raw Transcript` / `Export PDF` actions.
-- Top summary cards (row): Overall Score, Time Per Question, Topics Covered, Questions Asked.
-- Score trend (line chart): if comparing multiple interviews or showing question-by-question progression.
-- Competency heatmap / radar: axes for core competencies (RAG, Vector DBs, Prompt Engineering, MCP, etc.).
-- Topic bar chart: score by topic or curriculum day with color-coded performance bands.
-- Question table: paginated list with question text, candidate answer excerpt, score, time spent, and model feedback snippet.
-- AI feedback panel: aggregated qualitative feedback and 2–3 actionable recommendations.
-- Export & compare controls: compare this interview to previous ones, or export CSV/PDF.
+1. Inspect the existing project before making changes.
 
-Interactions
-- Hover tooltips on charts for exact values and explanation of metrics.
-- Filter by date range, curriculum day, topic, or difficulty band.
-- Drill into a topic to view all related questions and sample model feedback.
-- Toggle between absolute scores and percentile ranking (relative to mock cohort data).
+2. Reuse the existing interview data, storage logic, services, components, routing, and styling wherever possible.
 
-Accessibility & design
-- Maintain high contrast, readable typography, and keyboard navigation for the table and controls.
-- Provide screen-reader friendly labels for charts and export buttons.
+3. Do not hard-code any interview or user-specific information.
 
-API / Mock contract (frontend-friendly)
-- GET /api/analysis/{interviewId}
-      - Response: {
-                  interviewId: string,
-                  candidateId: string,
-                  date: ISO8601,
-                  durationSeconds: number,
-                  overallScore: number,
-                  topicsCovered: [{topicId, name, score, questionsCount}],
-                  questions: [{questionId, text, topicId, score, timeSeconds, modelFeedback}],
-                  aiSummary: {strengths: [string], improvements: [string], comments: string}
-            }
+4. The Interview History page should display all completed interviews available for the current user/application context.
 
-Mock response example (minimal)
-{
-      "interviewId": "intv_123",
-      "candidateId": "cand_456",
-      "date": "2026-08-08T14:22:00Z",
-      "durationSeconds": 1800,
-      "overallScore": 82,
-      "topicsCovered": [{"topicId":"t1","name":"RAG","score":88,"questionsCount":3}],
-      "questions": [{"questionId":"q1","text":"Explain RAG","topicId":"t1","score":85,"timeSeconds":240,"modelFeedback":"Good explanation; add enterprise constraints."}],
-      "aiSummary": {"strengths":["Concise explanations"],"improvements":["Deeper system design examples"],"comments":"Overall strong; recommend reviewing vector DB tradeoffs."}
-}
+5. For every completed interview, display:
+   - Interview date and time
+   - Overall score
+   - Number of questions
+   - Interview duration
+   - Topics or curriculum days covered
+   - Interview/session ID
 
-Implementation notes
-- Keep analysis logic in `services/analysisService.js` and use mock data under `mock/` until backend is ready.
-- Visuals should reuse existing charting components or use a lightweight chart library already allowed in the project. If no library exists, export data-ready structures so a different teammate can wire charts later.
-- Ensure the page supports server-driven PDFs (export endpoint) but provide a client-side CSV/JSON export fallback.
+6. When a user selects an interview, display detailed information including:
+   - Overall AI evaluation
+   - AI-generated summary
+   - Strengths
+   - Areas for improvement
+   - Recommended next steps
+   - Questions asked by the AI interviewer
+   - Candidate answers
 
-Team rules
-- Do not modify Interview or Dashboard behavior; Analysis is read-only with respect to interview data.
-- Keep components modular and export props-driven components for reuse on the History page.
+7. Display the interview conversation in chronological order and clearly distinguish:
+   - AI Interviewer
+   - Candidate
 
-Deliverable
-- A polished, well-documented prompt in `PROMPTS.md` that the design/development team can follow to implement the Performance Analysis page.
+8. Add a **Delete** option for an individual interview.
 
+9. Add a **Clear History** option for removing all interview history, with confirmation before deletion.
 
+10. If no interviews are available, display a professional empty-state message and provide a button to start a new interview.
+
+11. Provide navigation to:
+   - Dashboard: `/dashboard`
+   - Interview: `/interview`
+
+12. Keep the existing application's design consistent. Reuse the existing:
+   - Colors
+   - Typography
+   - Buttons
+   - Cards
+   - CSS variables
+   - Navigation
+   - Components
+
+13. Make the page responsive for desktop, tablet, and mobile screens.
+
+14. Newly completed interviews should appear in Interview History using the existing application data flow.
+
+15. Do not create fake interview records.
+
+16. Do not hard-code candidate names, scores, dates, questions, answers, or feedback.
+
+17. Do not create a duplicate interview-storage system if the existing project already provides one.
+
+18. Do not modify unrelated features or break:
+   - Dashboard
+   - Interview Page
+   - Interview completion
+   - AI feedback
+   - Existing routing
+   - Existing services
+
+### Implementation Flow
+
+The expected flow is:
+
+Candidate
+→ Start Interview
+→ AI Interview
+→ Questions and Answers
+→ Interview Completion
+→ Interview Feedback
+→ Interview Data Saved
+→ Interview History
+→ Select Previous Interview
+→ View Interview Details
+
+### Before Coding
+
+First inspect:
+
+- Existing project structure
+- Existing `History.jsx`
+- Existing `Interview.jsx`
+- Interview completion logic
+- Interview data/storage logic
+- Feedback/analysis services
+- Existing routing
+- Existing CSS/theme
+
+Then implement only the necessary changes for the Interview History feature.
+
+### Expected Result
+
+The final Interview History page should allow users to review their previous interview sessions, scores, feedback, questions, answers, strengths, improvement areas, and recommendations.
+
+The implementation must remain dynamic and must use the actual interview data available in the application rather than hard-coded information.
