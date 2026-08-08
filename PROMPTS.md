@@ -1024,7 +1024,7 @@ Use a professional interview layout:
 │                                             │
 └─────────────────────────────────────────────┘
 
-## Prompt - Interview History Feature
+## Prompt 6 - Interview History Feature
 
 Build the **Interview History** feature for our existing React project, **"The Interview Agent"**.
 
@@ -1135,3 +1135,85 @@ Then implement only the necessary changes for the Interview History feature.
 The final Interview History page should allow users to review their previous interview sessions, scores, feedback, questions, answers, strengths, improvement areas, and recommendations.
 
 The implementation must remain dynamic and must use the actual interview data available in the application rather than hard-coded information.
+
+### Prompt 7 - Performance Analysis Page
+> Design a polished, enterprise-grade **Performance Analysis** page for the interview platform.
+
+## Purpose
+
+Provide a clear, actionable summary of a completed interview session that helps candidates and mentors understand strengths, weaknesses, and recommended next steps.
+
+## Key requirements
+
+* Display an overall performance score and grade band.
+* Show topic coverage across the candidate's curriculum and identify missing or weak areas.
+* Present time metrics, such as average time per question and total interview duration.
+* Surface AI-generated feedback with bullet-point strengths and improvement suggestions.
+* Give a compact question-level summary including score, topic, and model feedback.
+* Support a clean, professional enterprise UI with dark slate cards, subtle borders, and a premium accent palette.
+
+## Page structure
+
+1. Header
+   * Interview title, candidate name, completion date, and duration.
+   * Primary action buttons like `Export Report` and `View Timeline`.
+2. Summary cards row
+   * Overall Score
+   * Topics Covered
+   * Questions Answered
+   * Follow-up Rate or Depth Score
+3. Topic performance section
+   * Bar chart or score cards showing topic-by-topic performance.
+   * Highlight weakest curriculum days and strongest areas.
+4. Conversation summary
+   * Compact list of key questions, answer quality, and AI comments.
+   * Separate AI feedback from candidate response details.
+5. Recommendations panel
+   * 2–3 actionable next steps.
+   * Suggested study areas and follow-up focus.
+
+## Design guidance
+
+* Keep the layout consistent with the existing Dashboard and Interview pages.
+* Use dark/slate backgrounds, subtle purple/indigo accents, and high-contrast text.
+* Avoid overly decorative or gamified elements.
+* Make the page feel like a professional AI evaluation dashboard.
+
+## Data contract
+
+Use a modular service layer for data access, for example:
+
+```text
+services/analysisService.js
+mock/analysisData.js
+```
+
+Mock API shape:
+
+```json
+{
+  "interviewId": "string",
+  "candidateId": "string",
+  "date": "ISO8601",
+  "durationSeconds": 1800,
+  "overallScore": 82,
+  "topicsCovered": [
+    {"topicId":"t1","name":"RAG","score":88,"questionsCount":3}
+  ],
+  "questions": [
+    {"questionId":"q1","text":"Explain RAG","topicId":"t1","score":85,"timeSeconds":240,"modelFeedback":"Good explanation; add enterprise constraints."}
+  ],
+  "aiSummary": {
+    "strengths": ["Concise explanations"],
+    "improvements": ["Deeper system design examples"],
+    "comments": "Overall strong; recommend reviewing vector DB tradeoffs."
+  }
+}
+```
+
+## Implementation notes
+
+* Keep analysis logic separate from UI components.
+* Reuse existing styles and CSS variables whenever possible.
+* Do not implement backend integration until the API contract is confirmed.
+* Keep the page modular so the History page or candidate profile can reuse the same data.
